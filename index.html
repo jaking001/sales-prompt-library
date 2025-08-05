@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Field Sales Prompt Library</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .gem-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .gem-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .toast {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        .toast.show {
+            visibility: visible;
+            opacity: 1;
+        }
+        .prompt-preview {
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: normal;
+            word-break: break-word;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-purple-600 dark:text-purple-400">Field Sales Excellence Library</h1>
+            <p class="mt-2 text-lg text-gray-600 dark:text-gray-400">Your complete sales toolkit. Click a button to copy a prompt, then paste it into your favorite AI tool.</p>
+            
+            <!-- Search Bar -->
+            <div class="mt-8 max-w-2xl mx-auto">
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                         <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <input type="text" id="searchInput" class="block w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md py-3 pl-10 pr-4 text-gray-900 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="Search for prompts (e.g., 'outreach', 'negotiation')...">
+                </div>
+            </div>
+        </header>
+
+        <div id="gemsContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <!-- Gem cards will be inserted here by the script -->
+            <div id="placeholder" class="text-center text-gray-500 dark:text-gray-400 py-10 col-span-full">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707.707M12 21v-1m0-16a8 8 0 100 16 8 8 0 000-16z" />
+                </svg>
+                <h3 class="mt-2 text-sm font-medium">Loading Prompts...</h3>
+            </div>
+             <!-- No Results Message -->
+            <div id="noResults" class="hidden text-center text-gray-500 dark:text-gray-400 py-10 col-span-full">
+                 <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                </svg>
+                <h3 class="mt-2 text-sm font-medium">No Prompts Found</h3>
+                <p class="text-xs text-gray-500">Try a different search term.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast fixed bottom-5 right-5 bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg">
+        Prompt copied to clipboard!
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const gemsContainer = document.getElementById('gemsContainer');
+        const placeholder = document.getElementById('placeholder');
+        const toast = document.getElementById('toast');
+        const searchInput = document.getElementById('searchInput');
+        const noResults = document.getElementById('noResults');
+
+
+        // --- Pre-defined Prompt Library ---
+        const promptLibrary = [
+            {
+                name: "1. Cold Outreach Optimization",
+                prompt: `You are an expert field sales consultant specializing in B2B cold outreach. I'm targeting [INDUSTRY] companies with [COMPANY SIZE] employees. My product/service is [BRIEF DESCRIPTION]. Wait for me to provide you with these variables before responding. \nCreate a multi-touch cold outreach sequence (email, LinkedIn, phone) that:\n- Addresses specific pain points for this industry\n- Uses pattern interrupts to grab attention\n- Includes social proof and credibility markers\n- Has clear, low-friction CTAs\nFormat as: Touch 1 (LinkedIn), Touch 2 (Email), Touch 3 (Phone script), Touch 4 (Email follow-up), Touch 5 (Video message script).\nTone: Professional but conversational. Length: Each touch 100-150 words maximum.`
+            },
+            {
+                name: "2. Social Selling Content Creation",
+                prompt: `You are a social selling strategist with expertise in LinkedIn content for field sales professionals. I work in [INDUSTRY] selling [PRODUCT/SERVICE] to [TARGET AUDIENCE]. Wait for me to provide you with these variables before responding. \nGenerate 10 LinkedIn post ideas that position me as a thought leader while subtly promoting my solution. Include:\n- Industry trend commentary\n- Customer success stories (anonymized)\n- Behind-the-scenes field sales insights\n- Problem/solution frameworks\n- Interactive poll questions\nFormat: Post topic + 3-sentence hook + main content bullet points + engagement CTA.\nLength: Each post 150-200 words with relevant hashtags.`
+            },
+            {
+                name: "3. Lead Qualification Scoring (MEDICC)",
+                prompt: `You are a sales operations expert designing lead qualification systems using the MEDICC methodology. My field sales team targets [TARGET MARKET] with an average deal size of [AMOUNT] and [SALES CYCLE LENGTH]. Wait for me to provide you with these variables before responding. \nCreate a MEDICC qualification framework that includes:\n**METRICS** - Quantifiable business impact measurements\n- ROI/cost savings calculation questions\n- Performance improvement metrics they track\n- Current baseline measurements and targets\n\n**ECONOMIC BUYER** - Ultimate financial decision authority\n- Budget ownership identification techniques\n- Financial approval processes mapping\n- Economic impact justification requirements\n\n**DECISION CRITERIA** - Evaluation factors and requirements\n- Technical requirements and specifications\n- Vendor selection criteria priorities\n- Success measurement definitions\n\n**DECISION PROCESS** - How they make purchasing decisions\n- Evaluation timeline and milestones\n- Committee structure and influence mapping\n- Approval workflows and sign-off requirements\n\n**IDENTIFY PAIN** - Core business challenges driving need\n- Current state vs. desired state analysis\n- Pain intensity and urgency assessment\n- Business consequence of inaction\n\n**CHAMPION** - Internal advocate and influence network\n- Champion identification and cultivation strategies\n- Stakeholder influence mapping techniques\n- Champion enablement and support tools\n\nOutput format: Qualification scorecard (1-10 scale for each MEDICC component) with specific discovery questions, scoring guidelines, and red flag indicators.`
+            },
+            {
+                name: "4. Territory Research and Mapping",
+                prompt: `You are a territory management strategist with expertise in field sales optimization. I'm responsible for [GEOGRAPHIC AREA] with [NUMBER] target accounts across [INDUSTRIES]. Wait for me to provide you with these variables before responding. \n**Use Case**: New territory assignment or annual planning\n**Focus**: External market analysis and opportunity identification\n\nCreate a systematic territory research methodology that:\n- Identifies high-value prospect clusters\n- Maps competitive landscape by micro-market\n- Prioritizes accounts by revenue potential and accessibility\n- Establishes optimal travel routes and visit frequency\n- Incorporates seasonal business patterns and local events\n\nInclude research sources: Industry databases, local business journals, networking events, referral networks, and digital footprint analysis.\n\nOutput format: Territory intelligence worksheet with account prioritization matrix, quarterly visit planning calendar, and competitive positioning map.\nTime constraint: 2-hour research blocks maximum per territory.`
+            },
+            {
+                name: "5. Personalized Pitch Development",
+                prompt: `You are an elite sales trainer specializing in value-based selling. I'm preparing a pitch for [COMPANY NAME] in [INDUSTRY]. Key details: [COMPANY SIZE], [KNOWN CHALLENGES], [KEY STAKEHOLDERS], [COMPETITIVE LANDSCAPE]. Wait for me to provide you with these variables before responding. \nDevelop a 15-minute pitch structure that:\n- Opens with a provocation specific to their industry\n- Identifies 3 core business challenges they likely face\n- Connects our solution to measurable business outcomes\n- Handles 2-3 predictable objections proactively\n- Ends with a specific next step\n\nFormat: Slide-by-slide outline with talking points and timing. Include transition phrases and audience engagement moments.\nConstraint: 15-20 slides maximum, 15-minute presentation.`
+            },
+            {
+                name: "6. Objection Handling Preparation",
+                prompt: `You are a field sales expert who has handled thousands of objections across industries. I sell [PRODUCT/SERVICE] with typical objections around [COMMON OBJECTION THEMES]. Wait for me to provide you with these variables before responding. \nCreate an objection handling playbook covering:\n- Price/budget concerns\n- Timing/urgency issues\n- Authority/decision-making process\n- Competitive comparisons\n- Trust/credibility questions\n\nFor each objection category, provide:\n1. The root concern behind the objection\n2. 3 different response techniques (Feel/Felt/Found, Question reversal, Story-based)\n3. Specific language scripts\n4. Follow-up questions to advance the sale\n\nOutput as a quick-reference guide with scenario-based examples.\nConstraint: 30-45 seconds speaking time per response script.`
+            },
+            {
+                name: "7. Value Proposition Crafting",
+                prompt: `You are a value proposition specialist focusing on quantifiable business outcomes. I sell [PRODUCT/SERVICE] to [TARGET AUDIENCE] who typically struggle with [CORE CHALLENGES]. Wait for me to provide you with these variables before responding. \nDevelop 5 distinct value propositions tailored to different stakeholder types:\n- C-suite executives (strategic/financial impact)\n- Operations managers (efficiency/productivity gains)\n- End users (daily workflow improvements)\n- IT/Technical buyers (integration/security benefits)\n- Procurement (cost/risk considerations)\n\nFor each stakeholder, provide:\n- Pain point they prioritize most\n- Specific business metrics they track\n- Value statement in their language\n- Supporting proof points and case studies\n- Objection they're most likely to raise\n\nFormat as stakeholder-specific pitch cards with messaging frameworks and supporting evidence.\nConstraint: 150-200 words per value proposition.`
+            },
+            {
+                name: "8. Demo Customization",
+                prompt: `You are a sales engineer and demo specialist. I'm preparing product demonstrations for [PROSPECT TYPE] in [INDUSTRY] with specific use cases around [KEY REQUIREMENTS]. Wait for me to provide you with these variables before responding. \nCreate a demo customization framework that:\n- Aligns product features to prospect's documented needs\n- Uses their actual data/scenarios when possible\n- Addresses integration with their existing systems\n- Demonstrates ROI through their specific metrics\n- Handles technical questions and limitations transparently\n\nInclude:\n- Pre-demo discovery questions\n- Demo flow with timing (30/45/60-minute versions)\n- Interactive elements to increase engagement\n- Follow-up materials and trial setup process\n- Competitor differentiation talking points\n\nOutput format: Demo script with branching scenarios, technical FAQ, and follow-up sequence templates.\nConstraint: 30/45/60-minute versions with 5-minute interactive segments.`
+            },
+            {
+                name: "9. Contract Term Optimization",
+                prompt: `You are a contract negotiation specialist with expertise in field sales deals. I'm negotiating a [CONTRACT VALUE] deal with [CONTRACT LENGTH] term. Key negotiation points include: [SPECIFIC TERMS]. Wait for me to provide you with these variables before responding. \nDevelop negotiation strategies for:\n- Payment terms and schedule optimization\n- Performance metrics and SLA definitions\n- Renewal and expansion clauses\n- Risk mitigation and liability limits\n- Implementation timeline agreements\n\nFor each negotiation point, provide:\n- Our ideal position\n- Acceptable compromise range\n- Walk-away thresholds\n- Value-based justification language\n- Alternative proposals if they push back\n\nFormat as a negotiation prep sheet with talking points and concession strategies.\nConstraint: 30-minute focused negotiation sessions.`
+            },
+            {
+                name: "10. Price Justification Frameworks",
+                prompt: `You are a pricing strategist specializing in value-based selling methodologies. My prospects frequently challenge our pricing at [PRICE POINT] compared to competitors at [COMPETITOR PRICING]. Wait for me to provide you with these values before responding. \nCreate price justification frameworks that:\n- Connect pricing to quantifiable business value\n- Differentiate total cost of ownership vs. initial price\n- Address budget constraints with flexible options\n- Position premium pricing as investment protection\n- Handle discount requests strategically\n\nInclude justification approaches for:\n- ROI-based value calculations\n- Risk mitigation and insurance value\n- Competitive total cost comparisons\n- Implementation and support value\n- Long-term partnership benefits\n\nOutput format: Price justification playbook with calculation tools, competitor comparison charts, and objection response scripts.`
+            },
+            {
+                name: "11. Urgency Creation Techniques",
+                prompt: `You are a sales psychology expert specializing in ethical urgency creation. My prospects often delay decisions, extending sales cycles beyond [CURRENT AVERAGE CYCLE]. Wait for me to provide you with these values before responding. \nCreate 8 urgency techniques that:\n- Use scarcity principles ethically\n- Leverage business consequences of inaction\n- Highlight competitive timing advantages\n- Connect to prospect's stated priorities\n- Include specific language examples\n\nCategories: Market-based urgency, Internal deadline urgency, Competitive urgency, Seasonal/timing urgency.\n\nFormat: Technique name + psychological principle + specific script example + ideal usage scenario.`
+            },
+            {
+                name: "12. Follow-up Sequence Planning",
+                prompt: `You are a sales sequence specialist focusing on post-proposal follow-up optimization. My proposals typically require [DECISION TIMEFRAME] with [NUMBER] stakeholders involved in the approval process. Wait for me to provide you with these values before responding. \n**Use Case**: Active sales process advancement\n**Focus**: Proposal follow-up and decision acceleration\n\nDesign a follow-up sequence that:\n- Maintains momentum without appearing pushy\n- Provides value at each touchpoint\n- Addresses different stakeholder concerns\n- Creates multiple response opportunities\n- Escalates appropriately when needed\n\nInclude sequence elements:\n- Thank you and proposal summary (Day 1)\n- Value reinforcement with case study (Day 3)\n- Implementation timeline clarification (Day 7)\n- Competitive differentiation reminder (Day 10)\n- Executive-level escalation (Day 14)\n\nOutput format: Follow-up calendar with email templates, call scripts, and decision tree for next steps based on responses.\nConstraint: 5-7 touchpoints over 14 days maximum.`
+            },
+            {
+                name: "13. Account Expansion Strategies",
+                prompt: `You are a strategic account management expert focusing on field sales environments. I have [NUMBER] key accounts with expansion potential in [SPECIFIC AREAS]. Wait for me to provide you with these values before responding. \nCreate an account expansion playbook that systematically:\n- Maps organizational structure and influence\n- Identifies expansion opportunities across departments\n- Develops champion cultivation strategies\n- Creates value demonstration frameworks for new stakeholders\n- Builds expansion timeline and milestone tracking\n\nFor each expansion vector (new departments, additional locations, enhanced services), provide:\n- Opportunity identification criteria\n- Stakeholder engagement strategies\n- Value proposition customization approaches\n- Implementation and onboarding considerations\n\nOutput format: Account expansion template with assessment tools, engagement scripts, and tracking mechanisms.`
+            },
+            {
+                name: "14. Customer Success Planning",
+                prompt: `You are a customer success strategist specializing in field sales account management. I manage [NUMBER] active clients with varying engagement levels and expansion potential. Wait for me to provide you with this value before responding. \n**Use Case**: Growth-oriented engagement and churn prevention\n**Focus**: Success metric tracking and proactive intervention\n\nDevelop a proactive customer success framework that:\n- Establishes success metrics and milestone tracking\n- Creates regular check-in cadences and formats\n- Identifies expansion opportunities before client requests\n- Builds loyalty through value-added services\n- Prevents churn through early warning systems\n\nFor each client lifecycle stage (onboarding, adoption, growth, renewal), provide:\n- Key activities and deliverables\n- Success metrics and measurement tools\n- Escalation procedures for at-risk accounts\n- Expansion conversation triggers and scripts\n\nFormat as a customer journey map with templated touchpoints, success metrics dashboard, and action plans for each stage.`
+            },
+            {
+                name: "15. Renewal Preparation",
+                prompt: `You are a renewal specialist with expertise in subscription and contract-based sales models. My clients have [CONTRACT LENGTH] terms with renewal rates currently at [CURRENT RATE]%. Wait for me to provide you with these values before responding. \nCreate a renewal preparation system that starts [TIMEFRAME] before contract expiration:\n- Account health assessment and risk scoring\n- Value realization documentation and ROI reporting\n- Expansion opportunity identification and proposal development\n- Competitive threat assessment and response strategies\n- Contract optimization and pricing discussions\n\nInclude renewal conversation frameworks:\n- Value review and success story compilation\n- Future needs assessment and solution evolution\n- Pricing negotiation strategies and concession planning\n- Multi-year incentives and expansion bundling\n- Risk mitigation for price-sensitive accounts\n\nOutput format: Renewal timeline with milestone checklists, conversation scripts, and negotiation playbooks.`
+            },
+            {
+                name: "16. Referral Generation",
+                prompt: `You are a referral marketing expert specializing in B2B field sales environments. My satisfied clients rarely provide referrals despite positive outcomes with our solution.\nDesign a systematic referral generation program that:\n- Identifies optimal referral timing and triggers\n- Creates easy referral processes for clients\n- Develops referral request scripts for different scenarios\n- Establishes referral reward and recognition systems\n- Tracks referral sources and conversion rates\n\nInclude referral conversation templates for:\n- Post-implementation success celebrations\n- Quarterly business reviews and check-ins\n- Industry events and networking opportunities\n- Case study participation requests\n- Renewal and expansion discussions\n\nOutput format: Referral program handbook with scripts, tracking tools, reward structures, and success measurement frameworks.`
+            },
+            {
+                name: "17. Sales Rep Daily Activity Planning",
+                prompt: `You are a field sales productivity coach. I have [NUMBER] active prospects in my pipeline, [NUMBER] existing clients, and travel time averages [TIME] between appointments in my territory. Wait for me to provide you with these values before responding. \n**Use Case**: Weekly/daily productivity maximization\n**Focus**: Time management and route efficiency\n\nCreate an optimal daily/weekly activity framework that maximizes:\n- Face-to-face selling time\n- Pipeline progression activities\n- Client retention touchpoints\n- Administrative efficiency\n- Territory coverage optimization\n\nInclude:\n- Time blocking templates\n- Activity prioritization matrix\n- Travel route optimization tips\n- CRM update schedules\n- Energy management for peak performance\n\nOutput format: Weekly template with daily breakdowns and activity allocation percentages.\nConstraint: Weekly 2-hour planning blocks maximum.`
+            },
+            {
+                name: "18. CRM Data Optimization",
+                prompt: `You are a CRM optimization specialist for field sales teams. I use [CRM SYSTEM] and struggle with [SPECIFIC DATA CHALLENGES]. Wait for me to provide you with these values before responding. \nDesign a CRM data entry and maintenance system that:\n- Minimizes manual input time\n- Maximizes data quality and usefulness\n- Supports accurate forecasting\n- Enables effective follow-up automation\n- Provides actionable insights for territory management\n\nInclude:\n- Required vs. optional field guidelines\n- Data entry shortcuts and templates\n- Regular cleanup and maintenance schedules\n- Integration opportunities with other tools\n- Reporting dashboards for daily use\n\nFormat as a step-by-step implementation guide with specific field configurations and user training elements.`
+            },
+            {
+                name: "19. Customer Communication",
+                prompt: `You are a customer communication expert focusing on field sales relationship management. I manage [NUMBER] accounts with varying communication preferences and business priorities. Wait for me to provide you with this value before responding. \n**Use Case**: Ongoing account management and trust building\n**Focus**: Value delivery and advisor positioning\n\nCreate a customer communication strategy that:\n- Personalizes messaging by client preference and industry\n- Balances value-driven content with relationship building\n- Coordinates across multiple touchpoints (email, phone, in-person, social)\n- Tracks engagement and adjusts frequency accordingly\n- Positions me as a trusted advisor rather than vendor\n\nInclude communication templates for:\n- Weekly value-added check-ins\n- Industry insights and trend updates\n- Problem-solving and consultation requests\n- Social media engagement and content sharing\n- Crisis communication and issue resolution\n\nFormat as a communication calendar with template library, personalization guides, and engagement tracking methods.`
+            },
+            {
+                name: "20. Performance Tracking",
+                prompt: `You are a sales performance analyst specializing in field sales metrics and KPIs. I need to track my progress against [QUOTA/TARGETS] with visibility into leading and lagging indicators. Wait for me to provide you with these values before responding. \nDevelop a personal performance tracking system that monitors:\n- Activity metrics (calls, meetings, proposals, demos)\n- Pipeline health (stage progression, deal velocity, win rates)\n- Territory coverage (account penetration, geographic efficiency)\n- Skill development (objection handling, closing rates, expansion success)\n- Goal achievement (quota attainment, growth trajectories)\n\nInclude dashboard elements:\n- Daily activity scorecards\n- Weekly pipeline reviews\n- Monthly territory analysis\n- Quarterly goal assessment\n- Annual performance trends\n\nOutput format: Personal scorecard template with automated calculations, trend analysis, and goal-setting frameworks for continuous improvement.`
+            },
+            {
+                name: "21. Team Coaching Frameworks",
+                prompt: `You are an executive sales coach with expertise in field sales team development. I manage [TEAM SIZE] field reps with performance ranging from [LOW PERFORMER METRICS] to [HIGH PERFORMER METRICS]. Wait for me to provide you with these values before responding. \nCreate a comprehensive coaching framework that includes:\n- Individual performance assessment criteria\n- Skill gap identification methodology\n- Coaching conversation templates for different scenarios\n- Goal setting and accountability structures\n- Recognition and motivation systems\n\nFor each coaching scenario (underperformer, average performer, high performer), provide:\n- Diagnostic questions to identify root causes\n- Specific coaching techniques and approaches\n- Measurable improvement plans\n- Progress tracking methods\n\nOutput format: Coaching playbook with templates, scripts, and measurement tools.\nConstraint: 30-minute focused coaching sessions.`
+            },
+            {
+                name: "22. Territory Allocation",
+                prompt: `You are a territory management consultant specializing in field sales team optimization. I need to reallocate [NUMBER OF TERRITORIES] territories among [TEAM SIZE] reps to maximize coverage and minimize travel while ensuring fair opportunity distribution. Wait for me to provide you with these values before responding. \n**Use Case**: Team leadership and resource allocation\n**Focus**: Workload balancing and coverage optimization\n\nCreate a territory allocation methodology that considers:\n- Geographic proximity and travel efficiency\n- Account value and growth potential\n- Rep experience levels and skill sets\n- Existing client relationships and transitions\n- Market penetration opportunities and competitive landscape\n\nInclude allocation criteria:\n- Revenue potential and account density\n- Travel time and cost optimization\n- Rep capacity and workload balancing\n- Relationship continuity and client preferences\n- Growth trajectory and market opportunity\n\nOutput format: Territory analysis worksheet with mapping tools, reallocation timeline, change management process, and performance impact projections.`
+            },
+            {
+                name: "23. Pipeline Forecasting",
+                prompt: `You are a sales operations expert specializing in field sales forecasting accuracy. Our team historically forecasts at [CURRENT ACCURACY]% with [SALES CYCLE LENGTH] average cycles. Wait for me to provide you with these values before responding. \nDevelop a pipeline forecasting methodology that improves accuracy by:\n- Implementing stage-specific probability weighting\n- Creating objective advancement criteria\n- Establishing forecast review processes\n- Building in competitive and seasonal factors\n- Training reps on accurate pipeline hygiene\n\nInclude:\n- Stage definition and exit criteria\n- Probability percentages by stage and deal characteristics\n- Weekly/monthly forecast review templates\n- Rep training materials for forecast discipline\n- Dashboard requirements for forecast visibility\n\nFormat as an implementation guide with templates, training materials, and measurement frameworks.`
+            },
+            {
+                name: "24. Performance Analysis",
+                prompt: `You are a sales performance consultant specializing in field team analytics. I manage [TEAM SIZE] reps with varying performance levels and need data-driven insights to improve overall team results. Wait for me to provide you with this value before responding. \nDevelop a comprehensive performance analysis framework that examines:\n- Individual rep performance across key metrics\n- Team trends and patterns identification\n- Coaching opportunity prioritization\n- Resource allocation optimization\n- Forecasting accuracy and pipeline health\n\nInclude analysis dimensions:\n- Activity levels vs. results correlation\n- Win rate analysis by rep, territory, and deal characteristics\n- Sales cycle length and stage conversion rates\n- Lost deal analysis and competitive intelligence\n- Customer satisfaction and retention metrics\n\nOutput format: Performance dashboard with individual scorecards, team benchmarking, coaching priority matrix, and improvement action plans.`
+            },
+            {
+                name: "25. Process Optimization",
+                prompt: `You are a sales operations expert specializing in field sales process improvement. Our current sales process has [SPECIFIC INEFFICIENCIES] that impact productivity and results. Wait for me to provide you with these values before responding. \nDesign a process optimization initiative that:\n- Maps current state workflows and identifies bottlenecks\n- Streamlines administrative tasks and approval processes\n- Automates repetitive activities and data entry\n- Improves handoffs between sales stages and departments\n- Measures process efficiency and effectiveness improvements\n\nInclude optimization areas:\n- Lead routing and qualification processes\n- Proposal generation and approval workflows\n- Contract negotiation and legal review procedures\n- Customer onboarding and implementation handoffs\n- Reporting and forecast submission requirements\n\nOutput format: Process improvement roadmap with current state analysis, future state design, implementation timeline, and success metrics.`
+            },
+            {
+                name: "26. Data Analysis and Reporting",
+                prompt: `You are a sales analytics specialist focusing on field sales team insights. I need to transform raw CRM and activity data into actionable intelligence for sales leadership and reps.\nCreate a comprehensive reporting framework that delivers:\n- Executive dashboards for strategic decision-making\n- Manager reports for team coaching and resource allocation\n- Rep scorecards for individual performance tracking\n- Pipeline analysis for forecasting accuracy\n- Market intelligence for competitive positioning\n\nInclude report categories:\n- Daily activity and progress tracking\n- Weekly pipeline and forecast reviews\n- Monthly performance and trend analysis\n- Quarterly territory and market assessments\n- Annual strategic planning and goal setting\n\nOutput format: Reporting suite with automated dashboards, scheduled delivery systems, data validation processes, and user training materials.`
+            },
+            {
+                name: "27. Technology Implementation",
+                prompt: `You are a sales technology consultant specializing in field sales tool integration. We're implementing [NEW TECHNOLOGY] to improve [SPECIFIC OBJECTIVES] for our field team. Wait for me to provide you with these values before responding. \nDevelop a technology implementation plan that ensures:\n- Seamless integration with existing systems and workflows\n- Minimal disruption to current sales activities\n- Comprehensive user training and adoption support\n- Data migration and validation procedures\n- Success measurement and optimization protocols\n\nInclude implementation phases:\n- Requirements gathering and system configuration\n- Pilot testing with select users and feedback incorporation\n- Phased rollout with training and support\n- Full deployment with monitoring and optimization\n- Post-implementation review and continuous improvement\n\nOutput format: Implementation project plan with timelines, resource requirements, training curricula, change management strategies, and success metrics.`
+            },
+            {
+                name: "28. Efficiency Measurement",
+                prompt: `You are an efficiency expert specializing in field sales productivity optimization. I need to establish baseline measurements and improvement targets for [SPECIFIC EFFICIENCY AREAS]. Wait for me to provide you with these values before responding. \nCreate an efficiency measurement system that tracks:\n- Time allocation across selling vs. non-selling activities\n- Travel optimization and territory coverage effectiveness\n- Administrative burden and process friction points\n- Technology utilization and automation opportunities\n- Resource allocation and ROI measurement\n\nInclude measurement frameworks:\n- Activity-based time tracking and analysis\n- Territory coverage and travel efficiency metrics\n- Process cycle time and bottleneck identification\n- Technology adoption and productivity impact\n- Cost per acquisition and lifetime value optimization\n\nOutput format: Efficiency audit toolkit with measurement templates, benchmarking guidelines, improvement target setting, and ongoing monitoring systems.`
+            },
+            {
+                name: "Scenario 1.1: Competitive Displacement - Territory Intelligence",
+                prompt: `You are a competitive intelligence specialist. Analyze [COMPETITOR] market positioning in [GEOGRAPHIC TERRITORY]. Identify 3 key vulnerabilities in their [INDUSTRY] approach, 2 client satisfaction gaps, and optimal timing for displacement conversations.`
+            },
+            {
+                name: "Scenario 1.2: Competitive Displacement - Differentiation",
+                prompt: `Based on the competitive vulnerabilities identified, create 5 differentiation talking points that position our solution as superior. Include specific proof points, client success metrics, and risk mitigation advantages.`
+            },
+            {
+                name: "Scenario 1.3: Competitive Displacement - Scripts",
+                prompt: `Develop conversation scripts for 3 displacement scenarios: contract renewal discussions, performance review meetings, and competitive evaluation processes. Include transition phrases and objection responses.`
+            },
+            {
+                name: "Scenario 1.4: Competitive Displacement - Timeline",
+                prompt: `Create a 90-day competitive displacement timeline with milestone checkpoints, stakeholder engagement sequences, and success measurement criteria.`
+            },
+            {
+                name: "Scenario 2.1: Enterprise Sale - Stakeholder Mapping",
+                prompt: `You are an enterprise sales strategist. Map the decision-making structure for [COMPANY NAME] including economic buyer, technical evaluators, end users, and influence networks. Identify communication preferences and success metrics for each stakeholder type.`
+            },
+            {
+                name: "Scenario 2.2: Enterprise Sale - Value Propositions",
+                prompt: `Based on the stakeholder analysis, create distinct value propositions for each decision influencer. Align business outcomes to their specific KPIs and departmental objectives.`
+            },
+            {
+                name: "Scenario 2.3: Enterprise Sale - Engagement Plan",
+                prompt: `Design a coordinated engagement strategy that addresses each stakeholder's concerns while building consensus toward purchase decision. Include touchpoint sequencing and internal champion development.`
+            },
+            {
+                name: "Scenario 2.4: Enterprise Sale - Proposal Customization",
+                prompt: `Create a modular proposal structure with executive summary, technical specifications, implementation timeline, and ROI projections tailored to the mapped stakeholder priorities.`
+            },
+            {
+                name: "Scenario 3.1: Territory Expansion - Market Research",
+                prompt: `You are a market expansion analyst. Research [NEW TERRITORY] for B2B field sales opportunities including industry concentration, competitive landscape, key decision makers, and optimal prospecting channels.`
+            },
+            {
+                name: "Scenario 3.2: Territory Expansion - Go-to-Market Strategy",
+                prompt: `Based on territory research, develop launch strategy including prospect prioritization, messaging customization, channel selection, and success metrics for the first 90 days.`
+            },
+            {
+                name: "Scenario 3.3: Territory Expansion - Activity Planning",
+                prompt: `Create detailed activity plans for territory penetration including daily prospecting targets, weekly meeting goals, monthly pipeline milestones, and quarterly revenue objectives.`
+            },
+            {
+                name: "Scenario 3.4: Territory Expansion - Performance Optimization",
+                prompt: `Design feedback loops and optimization protocols for continuous territory expansion improvement based on conversion metrics and market response patterns.`
+            }
+        ];
+
+        /**
+         * Loads the pre-defined prompts from the library and displays them as cards.
+         */
+        function loadLibrary() {
+            // Clear placeholder and any existing cards
+            gemsContainer.innerHTML = ''; 
+            
+            if (promptLibrary.length === 0) {
+                placeholder.classList.remove('hidden');
+                placeholder.innerHTML = '<h3 class="mt-2 text-sm font-medium">No Prompts in Library</h3>';
+                gemsContainer.appendChild(placeholder);
+            } else {
+                placeholder.classList.add('hidden');
+                promptLibrary.forEach(gem => {
+                    createGemCard(gem.name, gem.prompt);
+                });
+            }
+        }
+
+        /**
+         * Creates a visual card for a Gem.
+         * @param {string} name - The name of the prompt.
+         * @param {string} prompt - The full text of the prompt.
+         */
+        function createGemCard(name, prompt) {
+            const card = document.createElement('div');
+            card.className = 'gem-card bg-white dark:bg-gray-800 rounded-xl shadow-md p-5 flex flex-col';
+
+            card.innerHTML = `
+                <div class="flex-grow mb-4">
+                    <h3 class="text-lg font-bold text-purple-600 dark:text-purple-400">${name}</h3>
+                    <p class="prompt-preview text-sm text-gray-600 dark:text-gray-400 mt-2">${prompt}</p>
+                </div>
+                <div class="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700 grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                    <button class="use-gemini-btn bg-green-600 hover:bg-green-700 text-white text-center font-semibold py-2 px-3 rounded-lg transition">
+                        Copy &amp; Open Gemini
+                    </button>
+                    <button class="use-chatgpt-btn bg-gray-800 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 text-white text-center font-semibold py-2 px-3 rounded-lg transition">
+                        Copy &amp; Open ChatGPT
+                    </button>
+                    <button class="copy-only-btn bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-3 rounded-lg transition">
+                        Copy Prompt
+                    </button>
+                </div>
+            `;
+            gemsContainer.appendChild(card);
+
+            // Add event listeners for the new card's buttons
+            card.querySelector('.use-gemini-btn').addEventListener('click', () => copyAndOpen(prompt, 'https://gemini.google.com/app'));
+            card.querySelector('.use-chatgpt-btn').addEventListener('click', () => copyAndOpen(prompt, 'https://chat.openai.com/'));
+            card.querySelector('.copy-only-btn').addEventListener('click', () => copyOnly(prompt));
+        }
+
+        /**
+         * Copies the prompt text to the clipboard and opens a URL.
+         * @param {string} prompt - The prompt text to copy.
+         * @param {string} url - The URL to open in a new tab.
+         */
+        function copyAndOpen(prompt, url) {
+            copyToClipboard(prompt, () => {
+                window.open(url, '_blank');
+            });
+        }
+        
+        /**
+         * Copies the prompt text to the clipboard without opening a new window.
+         * @param {string} prompt - The prompt text to copy.
+         */
+        function copyOnly(prompt) {
+            copyToClipboard(prompt);
+        }
+
+        /**
+         * Helper function to handle copying text to the clipboard.
+         * @param {string} textToCopy - The text to be copied.
+         * @param {function} [callback] - Optional callback function to run on success.
+         */
+        function copyToClipboard(textToCopy, callback) {
+            const textarea = document.createElement('textarea');
+            textarea.value = textToCopy;
+            textarea.style.position = 'fixed'; // Prevent scrolling to bottom of page in MS Edge.
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast();
+                if (callback) {
+                    callback();
+                }
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+                showErrorModal('Failed to copy prompt. Please copy it manually.');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        /**
+         * Shows a temporary toast notification.
+         */
+        function showToast() {
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        /**
+         * Shows an error message in a temporary modal.
+         * @param {string} message - The error message to display.
+         */
+        function showErrorModal(message) {
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '20px';
+            modal.style.left = '50%';
+            modal.style.transform = 'translateX(-50%)';
+            modal.style.padding = '10px 20px';
+            modal.style.background = '#f44336';
+            modal.style.color = 'white';
+            modal.style.borderRadius = '5px';
+            modal.style.zIndex = '1000';
+            modal.textContent = message;
+            document.body.appendChild(modal);
+            setTimeout(() => document.body.removeChild(modal), 3000);
+        }
+
+        /**
+         * Filters the displayed prompt cards based on the search input.
+         */
+        function filterPrompts() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const cards = gemsContainer.querySelectorAll('.gem-card');
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const name = card.querySelector('h3').textContent.toLowerCase();
+                const promptText = card.querySelector('p').textContent.toLowerCase();
+                const isVisible = name.includes(searchTerm) || promptText.includes(searchTerm);
+                
+                card.style.display = isVisible ? 'flex' : 'none';
+                if (isVisible) {
+                    visibleCount++;
+                }
+            });
+
+            // Show or hide the "No Results" message
+            noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+        
+        // --- Start the application ---
+        // Add event listener for the search input
+        searchInput.addEventListener('input', filterPrompts);
+
+        // Load the library as soon as the DOM is ready.
+        document.addEventListener('DOMContentLoaded', loadLibrary);
+
+    </script>
+</body>
+</html>
