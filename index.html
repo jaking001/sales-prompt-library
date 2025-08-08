@@ -94,15 +94,15 @@
         const promptLibrary = [
             {
                 name: "1. Cold Outreach Optimization",
-                prompt: `You are an expert field sales consultant specializing in B2B cold outreach. I'm targeting [INDUSTRY] companies with [COMPANY SIZE] employees. My product/service is [BRIEF DESCRIPTION]. Wait for me to provide you with these variables before responding. \nCreate a multi-touch cold outreach sequence (email, LinkedIn, phone) that:\n- Addresses specific pain points for this industry\n- Uses pattern interrupts to grab attention\n- Includes social proof and credibility markers\n- Has clear, low-friction CTAs\nFormat as: Touch 1 (LinkedIn), Touch 2 (Email), Touch 3 (Phone script), Touch 4 (Email follow-up), Touch 5 (Video message script).\nTone: Professional but conversational. Length: Each touch 100-150 words maximum.`
+                prompt: `You are an expert field sales consultant specializing in B2B cold outreach. I'm targeting [INDUSTRY] companies with [COMPANY SIZE] employees. My product/service is [BRIEF DESCRIPTION]. Prompt me to provide you any missing variables before responding. \nCreate a multi-touch cold outreach sequence (email, LinkedIn, phone) that:\n- Addresses specific pain points for this industry\n- Uses pattern interrupts to grab attention\n- Includes social proof and credibility markers\n- Has clear, low-friction CTAs\nFormat as: Touch 1 (LinkedIn), Touch 2 (Email), Touch 3 (Phone script), Touch 4 (Email follow-up), Touch 5 (Video message script).\nTone: Professional but conversational. Length: Each touch 100-150 words maximum.`
             },
             {
                 name: "2. Social Selling Content Creation",
-                prompt: `You are a social selling strategist with expertise in LinkedIn content for field sales professionals. I work in [INDUSTRY] selling [PRODUCT/SERVICE] to [TARGET AUDIENCE]. Wait for me to provide you with these variables before responding. \nGenerate 10 LinkedIn post ideas that position me as a thought leader while subtly promoting my solution. Include:\n- Industry trend commentary\n- Customer success stories (anonymized)\n- Behind-the-scenes field sales insights\n- Problem/solution frameworks\n- Interactive poll questions\nFormat: Post topic + 3-sentence hook + main content bullet points + engagement CTA.\nLength: Each post 150-200 words with relevant hashtags.`
+                prompt: `You are a social selling strategist with expertise in LinkedIn content for field sales professionals. I work in [INDUSTRY] selling [PRODUCT/SERVICE] to [TARGET AUDIENCE]. Prompt me to provide you any missing variables before responding. \nGenerate 10 LinkedIn post ideas that position me as a thought leader while subtly promoting my solution. Include:\n- Industry trend commentary\n- Customer success stories (anonymized)\n- Behind-the-scenes field sales insights\n- Problem/solution frameworks\n- Interactive poll questions\nFormat: Post topic + 3-sentence hook + main content bullet points + engagement CTA.\nLength: Each post 150-200 words with relevant hashtags.`
             },
             {
                 name: "3. Lead Qualification Scoring (MEDICC)",
-                prompt: `You are a sales operations expert designing lead qualification systems using the MEDICC methodology. My field sales team targets [TARGET MARKET] with an average deal size of [AMOUNT] and [SALES CYCLE LENGTH]. Wait for me to provide you with these variables before responding. \nCreate a MEDICC qualification framework that includes:\n**METRICS** - Quantifiable business impact measurements\n- ROI/cost savings calculation questions\n- Performance improvement metrics they track\n- Current baseline measurements and targets\n\n**ECONOMIC BUYER** - Ultimate financial decision authority\n- Budget ownership identification techniques\n- Financial approval processes mapping\n- Economic impact justification requirements\n\n**DECISION CRITERIA** - Evaluation factors and requirements\n- Technical requirements and specifications\n- Vendor selection criteria priorities\n- Success measurement definitions\n\n**DECISION PROCESS** - How they make purchasing decisions\n- Evaluation timeline and milestones\n- Committee structure and influence mapping\n- Approval workflows and sign-off requirements\n\n**IDENTIFY PAIN** - Core business challenges driving need\n- Current state vs. desired state analysis\n- Pain intensity and urgency assessment\n- Business consequence of inaction\n\n**CHAMPION** - Internal advocate and influence network\n- Champion identification and cultivation strategies\n- Stakeholder influence mapping techniques\n- Champion enablement and support tools\n\nOutput format: Qualification scorecard (1-10 scale for each MEDICC component) with specific discovery questions, scoring guidelines, and red flag indicators.`
+                prompt: `You are a sales operations expert designing lead qualification systems using the MEDICC methodology. My field sales team targets [TARGET MARKET] with an average deal size of [AMOUNT] and [SALES CYCLE LENGTH]. Prompt me to provide you any missing variables before responding. \nCreate a MEDICC qualification framework that includes:\n**METRICS** - Quantifiable business impact measurements\n- ROI/cost savings calculation questions\n- Performance improvement metrics they track\n- Current baseline measurements and targets\n\n**ECONOMIC BUYER** - Ultimate financial decision authority\n- Budget ownership identification techniques\n- Financial approval processes mapping\n- Economic impact justification requirements\n\n**DECISION CRITERIA** - Evaluation factors and requirements\n- Technical requirements and specifications\n- Vendor selection criteria priorities\n- Success measurement definitions\n\n**DECISION PROCESS** - How they make purchasing decisions\n- Evaluation timeline and milestones\n- Committee structure and influence mapping\n- Approval workflows and sign-off requirements\n\n**IDENTIFY PAIN** - Core business challenges driving need\n- Current state vs. desired state analysis\n- Pain intensity and urgency assessment\n- Business consequence of inaction\n\n**CHAMPION** - Internal advocate and influence network\n- Champion identification and cultivation strategies\n- Stakeholder influence mapping techniques\n- Champion enablement and support tools\n\nOutput format: Qualification scorecard (1-10 scale for each MEDICC component) with specific discovery questions, scoring guidelines, and red flag indicators.`
             },
             {
                 name: "4. Territory Research and Mapping",
@@ -226,7 +226,7 @@
             },
             {
                 name: "Scenario 2.1: Competitive Displacement - Territory Intelligence",
-                prompt: `You are a competitive intelligence specialist. Analyze [COMPETITOR] market positioning in [GEOGRAPHIC TERRITORY]. Identify 3 key vulnerabilities in their [INDUSTRY] approach, 2 client satisfaction gaps, and optimal timing for displacement conversations.`
+                prompt: `You are a competitive intelligence specialist. Analyze [COMPETITOR] market positioning in [GEOGRAPHIC TERRITORY]. Identify 3 key vulnerabilities in their [INDUSTRY] approach, 2 client satisfaction gaps, and optimal timing for displacement conversations. Prompt me to provide you with these variables before responding.`
             },
             {
                 name: "Scenario 2.2: Competitive Displacement - Differentiation",
@@ -242,7 +242,7 @@
             },
             {
                 name: "Scenario 3.1: Enterprise Sale - Stakeholder Mapping",
-                prompt: `You are an enterprise sales strategist. Map the decision-making structure for [COMPANY NAME] including economic buyer, technical evaluators, end users, and influence networks. Identify communication preferences and success metrics for each stakeholder type.`
+                prompt: `You are an enterprise sales strategist. Map the decision-making structure for [COMPANY NAME] including economic buyer, technical evaluators, end users, and influence networks. Identify communication preferences and success metrics for each stakeholder type. Prompt me to provide you with any variables before responding.`
             },
             {
                 name: "Scenario 3.2: Enterprise Sale - Value Propositions",
@@ -258,7 +258,7 @@
             },
             {
                 name: "Scenario 4.1: Territory Expansion - Market Research",
-                prompt: `You are a market expansion analyst. Research [NEW TERRITORY] for B2B field sales opportunities including industry concentration, competitive landscape, key decision makers, and optimal prospecting channels.`
+                prompt: `You are a market expansion analyst. Research [NEW TERRITORY] for B2B field sales opportunities including industry concentration, competitive landscape, key decision makers, and optimal prospecting channels. Prompt me to provide you with any variables before responding.`
             },
             {
                 name: "Scenario 4.2: Territory Expansion - Go-to-Market Strategy",
